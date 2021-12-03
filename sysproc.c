@@ -93,18 +93,36 @@ sys_uptime(void)
 extern void *GetSharedPage(int key, int len);
 void* sys_GetSharedPage(void)
 {
-	int key,len;
+  int key,len;
 
-	if(argint(0, &key) < 0 || argint(1, &len) < 0)
-		return (void*)-1;
-	return (void*)(getSharedPage(key, len));
+  if(argint(0, &key) < 0 || argint(1, &len) < 0)
+    return (void*)-1;
+  return (void*)(GetSharedPage(key, len));
 }
 
 extern int FreeSharedPage(int key);
 int sys_FreeSharedPage(void)
 {
-	int key;
-	if(argint(0, &key) < 0)
-		return -1;
-	return freeSharedPage(key);
+  int key;
+  if(argint(0, &key) < 0)
+    return -1;
+  return FreeSharedPage(key);
 }
+int 
+//added 
+
+sys_iErase(int inum)
+{
+  //call iErase
+  ierase(inum);
+  return 0;
+}
+
+//added 
+int
+sys_iList(void)
+{
+  ilist();
+  return 0;
+}
+

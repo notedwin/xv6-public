@@ -22,7 +22,8 @@
 #include "file.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
-static void itrunc(struct inode*);
+//moved to defs.h
+//static void itrunc(struct inode*);
 // there should be one superblock per disk device, but we run with
 // only one device
 struct superblock sb; 
@@ -404,7 +405,7 @@ bmap(struct inode *ip, uint bn)
 // to it (no directory entries referring to it)
 // and has no in-memory reference to it (is
 // not an open file or current directory).
-static void
+void
 itrunc(struct inode *ip)
 {
   int i, j;
@@ -667,4 +668,53 @@ struct inode*
 nameiparent(char *path, char *name)
 {
   return namex(path, 1, name);
+}
+
+int ilist()
+{
+  struct buf *buffer;
+  struct dinode *dinode;
+  for(int i = 0; i < sb.ninodes; i++){
+    // read and lock buffer
+    buffer = bread(ROOTDEV, IBLOCK(i, sb));
+    // get dinode from buffer and add size of 
+    dinode = (struct dinode*)buffer->data + i%IPB;
+    // ignore device inodes or non-allocated inodes
+    if(dinode->type == 2 || dinode->type == 1)
+      cprintf("inode: %d type: %d size: %d\n", i, dinode->type, dinode->size);
+    // release lock for buffer
+    brelse(buffer);
+  }
+  return 0;
+}
+
+ierase(int inum)
+{
+  // get dp from current directory
+  
+  int i;
+  int j;
+  struct buf *bp;
+  struct dinode *dip;
+
+  // get inode from dinode
+  for(i = 0; i < sb.ninodes; i++){
+    bp = bread(ROOTDEV, IBLOCK(i, sb));
+    dip = (struct dinode*)bp->data + i%IPB;
+    // ignore device inodes or non-allocated inodes
+    if(i == inum){
+      cprintf("inode type: %d,", dip->type);
+      dip->type = 0;
+      dip->major = 0;
+      dip->minor = 0;
+      dip->size = 0;
+      for (j = 0; j < 13; i++){
+        dip->addrs[j] = 0;
+      }
+      cprintf("inode type: %d,", dip->type);
+      return 0;
+    }
+    brelse(bp);
+  }
+  return -1;
 }
